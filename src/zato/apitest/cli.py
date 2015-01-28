@@ -48,8 +48,9 @@ def init(ctx, path):
 
 @click.command()
 @click.argument('path', type=click.Path(exists=True, file_okay=False, resolve_path=True))
-def run(path):
-    _run.handle(path)
+@click.option('-b', '--behave-options', help='Override options to behave.')
+def run(path, behave_options):
+    _run.handle(path, behave_options)
 
 @click.command()
 @click.argument('path', default=tempfile.gettempdir(), type=click.Path(exists=True, file_okay=False, resolve_path=True))
