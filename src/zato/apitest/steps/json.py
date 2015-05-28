@@ -23,9 +23,20 @@ from datadiff.tools import assert_equals
 # jsonpointer
 from jsonpointer import resolve_pointer as get_pointer, set_pointer as _set_pointer
 
+# json
+from .common import needs_json
+import json
+
 # Zato
 from .. import util
 from .. import INVALID
+
+# Integer types for testing 'JSON Pointer {path} is any integer'
+try:
+    int_types = (int, long)
+except:
+    int_types = (int,)     # python 3 doesn't have the long type
+
 
 # ################################################################################################################################
 
@@ -125,15 +136,43 @@ def assert_value(ctx, path, value, wrapper=None):
 def then_json_pointer_is(ctx, path, value):
     return assert_value(ctx, path, value)
 
+@then('JSON Pointer "{path}" is JSON "{value}"')
+@needs_json
+@util.obtain_values
+def then_json_pointer_is_json(ctx, path, value):
+    return assert_value(ctx, path, json.loads(value))
+
+@then('JSON Pointer "{path}" is JSON equal to that from "{value}"')
+@needs_json
+@util.obtain_values
+def then_json_pointer_is_json_equal_to_that_from(ctx, path, value):
+    return assert_value(ctx, path, json.loads(util.get_data(ctx, 'response', value)))
+
 @then('JSON Pointer "{path}" is an integer "{value}"')
 @util.obtain_values
 def then_json_pointer_is_an_integer(ctx, path, value):
     return assert_value(ctx, path, value, int)
 
+@then('JSON Pointer "{path}" is any integer')
+@util.obtain_values
+def then_json_pointer_is_any_integer(ctx, path):
+    actual = get_pointer(ctx.zato.response.data_impl, path)
+    assert isinstance(actual, int_types), \
+        'Expected an integer in {}, got a `{}`'.format(path, type(actual))
+    return True
+
 @then('JSON Pointer "{path}" is a float "{value}"')
 @util.obtain_values
 def then_json_pointer_is_a_float(ctx, path, value):
     return assert_value(ctx, path, value, float)
+
+@then('JSON Pointer "{path}" is any float')
+@util.obtain_values
+def then_json_pointer_is_any_float(ctx, path):
+    actual = get_pointer(ctx.zato.response.data_impl, path)
+    assert isinstance(actual, float), \
+        'Expected a float in {}, got a `{}`'.format(path, type(actual))
+    return True
 
 @then('JSON Pointer "{path}" is a list "{value}"')
 @util.obtain_values
@@ -187,6 +226,11 @@ def then_json_pointer_is_false(ctx, path):
 @util.obtain_values
 def then_json_pointer_is_an_empty_list(ctx, path):
     return assert_value(ctx, path, [])
+
+@then('JSON Pointer "{path}" is an empty dict')
+@util.obtain_values
+def then_json_pointer_is_an_empty_dict(ctx, path):
+    return assert_value(ctx, path, {})
 
 @then('JSON Pointer "{path}" isn\'t a string "{value}"')
 @util.obtain_values

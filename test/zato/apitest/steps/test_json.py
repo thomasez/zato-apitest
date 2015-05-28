@@ -139,16 +139,30 @@ class ThenTestCase(TestCase):
         self.assertRaises(AssertionError, json.then_json_pointer_is, self.ctx, '/' + path, value)
 
     def test_then_json_pointer_is_an_integer(self):
-        path, value = util.rand_string(2)
+        path = util.rand_string()
         value = util.rand_int()
-        self.ctx.zato.response.data_impl[path] = util.rand_int()
+        self.ctx.zato.response.data_impl[path] = value + 1
         self.assertRaises(AssertionError, json.then_json_pointer_is_an_integer, self.ctx, '/' + path, value)
+
+    def test_then_json_pointer_is_any_integer(self):
+        path = util.rand_string()
+        self.ctx.zato.response.data_impl[path] = util.rand_float()
+        self.assertRaises(AssertionError, json.then_json_pointer_is_any_integer, self.ctx, '/' + path)
+        self.ctx.zato.response.data_impl[path] = util.rand_int()
+        self.assertTrue(json.then_json_pointer_is_any_integer(self.ctx, '/' + path))
 
     def test_then_json_pointer_is_a_float(self):
         path = util.rand_string()
         value = util.rand_float()
         self.ctx.zato.response.data_impl[path] = util.rand_float()
         self.assertRaises(AssertionError, json.then_json_pointer_is_a_float, self.ctx, '/' + path, value)
+
+    def test_then_json_pointer_is_any_float(self):
+        path = util.rand_string()
+        self.ctx.zato.response.data_impl[path] = util.rand_int()
+        self.assertRaises(AssertionError, json.then_json_pointer_is_any_float, self.ctx, '/' + path)
+        self.ctx.zato.response.data_impl[path] = util.rand_float()
+        self.assertTrue(json.then_json_pointer_is_any_float(self.ctx, '/' + path))
 
     def test_then_json_pointer_is_a_list(self):
         path, value = util.rand_string(2)
@@ -185,11 +199,16 @@ class ThenTestCase(TestCase):
         path = util.rand_string()
         self.ctx.zato.response.data_impl[path] = True
         self.assertRaises(AssertionError, json.then_json_pointer_is_false, self.ctx, '/' + path)
-        
+
     def test_then_json_pointer_is_an_empty_list(self):
         path = util.rand_string()
         self.ctx.zato.response.data_impl[path] = util.rand_string(2)
         self.assertRaises(AssertionError, json.then_json_pointer_is_an_empty_list, self.ctx, '/' + path)
+
+    def test_then_json_pointer_is_an_empty_dict(self):
+        path = util.rand_string()
+        self.ctx.zato.response.data_impl[path] = {}
+        self.assertTrue(json.then_json_pointer_is_an_empty_dict(self.ctx, '/' + path))
 
     def test_then_json_pointer_isnt_a_string(self):
         path, value = util.rand_string(2)
